@@ -51,10 +51,10 @@ var m sync.Mutex
 func StartServer() error {
 	router := mux.NewRouter()
 	router.Path("/book").Methods("POST").HandlerFunc(HandleAddBook)
+	router.Path("/book").Methods("GET").Queries("readed", "true").HandlerFunc(HandleGetReadedBooks)
+	router.Path("/book/{name}").Methods("GET").Queries("readed", "false").HandlerFunc(HandleGetUnreadedBooks)
 	router.Path("/book/{name}").Methods("GET").HandlerFunc(HandleGetBook)
 	router.Path("/book").Methods("GET").HandlerFunc(HandleGetAllBooks)
-	// router.Path("/book/{name}").Methods("GET").Queries("readed", "true").HandlerFunc(HandleGetReadedBooks)
-	// router.Path("/book/{name}").Methods("GET").Queries("readed", "false").HandlerFunc(HandleGetUnreadedBooks)
 	// router.Path("/book/{name}").Methods("PATCH").HandlerFunc(HandleCompleteBook)
 	// router.Path("/book/{name}").Methods("DELETE").HandlerFunc(HandleDeleteBook)
 
@@ -128,6 +128,50 @@ func HandleGetAllBooks(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write(b)
 	}
+}
+
+func HandleGetReadedBooks(w http.ResponseWriter, r *http.Request) {
+
+	readedBooks := make([]Book, 0)
+
+	for _, book := range books {
+		if book.Readed {
+			readedBooks = append(readedBooks, book)
+		}
+	}
+
+	b, err := json.Marshal(readedBooks)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(b)
+
+}
+
+func HandleGetUnreadedBooks(w http.ResponseWriter, r *http.Request) {
+
+	unreadedBooks := make([]Book, 0)
+
+	for _, book := range books {
+		if !book.Readed {
+			unreadedBooks = append(unreadedBooks, book)
+		}
+	}
+
+	// b, err := json.Marshal(unreadedBooks)
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
+
+	if err := json.NewEncoder(w).Encode(unreadedBooks); err != nil {
+		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+	}
+
+	w.WriteHeader(http.StatusOK)
+
 }
 
 func main() {
