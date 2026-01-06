@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"library/feature2"
 	"log"
 	"net/http"
 	"sync"
@@ -51,7 +52,7 @@ func StartServer() error {
 	router := mux.NewRouter()
 	router.Path("/book").Methods("POST").HandlerFunc(HandleAddBook)
 	router.Path("/book/{name}").Methods("GET").HandlerFunc(HandleGetBook)
-	// router.Path("/book").Methods("GET").HandlerFunc(HandleGetAllBooks)
+	router.Path("/book").Methods("GET").HandlerFunc(HandleGetAllBooks)
 	// router.Path("/book/{name}").Methods("GET").Queries("readed", "true").HandlerFunc(HandleGetReadedBooks)
 	// router.Path("/book/{name}").Methods("GET").Queries("readed", "false").HandlerFunc(HandleGetUnreadedBooks)
 	// router.Path("/book/{name}").Methods("PATCH").HandlerFunc(HandleCompleteBook)
@@ -114,8 +115,24 @@ func HandleGetBook(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func HandleGetAllBooks(w http.ResponseWriter, r *http.Request) {
+	m.Lock()
+	defer m.Unlock()
+
+	for _, book := range books {
+		b, err := json.Marshal(book)
+		if err != nil {
+			http.Error(w, "failed to marshal book", http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(b)
+	}
+}
+
 func main() {
 	if err := StartServer(); err != nil {
 		log.Fatal(err)
 	}
+	feature2.Feature2()
 }
