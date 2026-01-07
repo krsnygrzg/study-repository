@@ -119,15 +119,13 @@ func HandleGetAllBooks(w http.ResponseWriter, r *http.Request) {
 	m.Lock()
 	defer m.Unlock()
 
-	for _, book := range books {
-		b, err := json.Marshal(book)
-		if err != nil {
-			http.Error(w, "failed to marshal book", http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Write(b)
+	b, err := json.Marshal(books)
+	if err != nil {
+		http.Error(w, "failed to marshal book", http.StatusInternalServerError)
+		return
 	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(b)
 }
 
 func HandleGetReadedBooks(w http.ResponseWriter, r *http.Request) {
