@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"library/feature2"
+	simpleconnection "library/feature_postgres/simple_connection"
 	"log"
 	"net/http"
 	"sync"
@@ -211,6 +212,7 @@ func HandleDeleteBook(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	simpleconnection.CheckConnection()
 	feature2.Feature2()
 	if err := StartServer(); err != nil {
 		log.Fatal(err)
