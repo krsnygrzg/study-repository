@@ -37,12 +37,12 @@ func NewBook(name string, author string, pages int) Book {
 	}
 }
 
-// func (b *Book) Read() {
-// 	ReadTime := time.Now()
+func (b *Book) Read() {
+	ReadTime := time.Now()
 
-// 	b.Readed = true
-// 	b.ReadTime = &ReadTime
-// }
+	b.Readed = true
+	b.ReadTime = &ReadTime
+}
 
 var books = make([]Book, 0)
 
@@ -55,8 +55,8 @@ func StartServer() error {
 	router.Path("/book/{name}").Methods("GET").Queries("readed", "false").HandlerFunc(HandleGetUnreadedBooks)
 	router.Path("/book/{name}").Methods("GET").HandlerFunc(HandleGetBook)
 	router.Path("/book").Methods("GET").HandlerFunc(HandleGetAllBooks)
-	// router.Path("/book/{name}").Methods("PATCH").HandlerFunc(HandleCompleteBook)
-	// router.Path("/book/{name}").Methods("DELETE").HandlerFunc(HandleDeleteBook)
+	router.Path("/book/{name}").Methods("PATCH").HandlerFunc(HandleCompleteBook)
+	router.Path("/book/{name}").Methods("DELETE").HandlerFunc(HandleDeleteBook)
 
 	if err := http.ListenAndServe(":9091", router); err != nil {
 		if errors.Is(err, http.ErrServerClosed) {
@@ -172,9 +172,47 @@ func HandleGetUnreadedBooks(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func HandleCompleteBook(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+
+	m.Lock()
+	defer m.Unlock()
+
+	for i := range books {
+		if books[i].Name == name {
+			books[i].Read()
+
+			w.WriteHeader(http.StatusOK)
+
+			if err := json.NewEncoder(w).Encode(books[i]); err != nil {
+				http.Error(w, "failed to encode book", http.StatusInternalServerError)
+			}
+			return
+		}
+	}
+	http.Error(w, "book not found", http.StatusNotFound)
+}
+
+func HandleDeleteBook(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+
+	m.Lock()
+	defer m.Unlock()
+
+	for i := range books {
+		if books[i].Name == name {
+			books = append(books[:i], books[i+1:]...)
+			w.WriteHeader(http.StatusNoContent)
+			w.Write([]byte(name + "succesfully deleted"))
+			return
+		}
+	}
+	http.Error(w, "book not found", http.StatusNotFound)
+}
+
 func main() {
+	feature2.Feature2()
 	if err := StartServer(); err != nil {
 		log.Fatal(err)
 	}
-	feature2.Feature2()
 }
