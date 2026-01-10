@@ -9,15 +9,22 @@ import (
 func InsertRow(
 	ctx context.Context,
 	conn *pgx.Conn,
-	name string,
-	author string,
-	pages int,
+	book BookModel,
 ) error {
 	sqlQuery := `
-	INSERT INTO books (name, author, pages)
-	VALUES ($1, $2, $3);
+	INSERT INTO books (name, author, pages, readed, buy_time, read_time)
+	VALUES ($1, $2, $3, $4, $5, $6);
 	`
-	_, err := conn.Exec(ctx, sqlQuery, name, author, pages)
+	_, err := conn.Exec(
+		ctx,
+		sqlQuery,
+		book.Name,
+		book.Author,
+		book.Pages,
+		book.Readed,
+		book.BuyTime,
+		book.ReadTime,
+	)
 
 	return err
 }

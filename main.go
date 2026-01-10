@@ -239,9 +239,34 @@ func main() {
 	// 	panic(err)
 	// }
 
-	if err := simple_sql.DeleteRow(ctx, conn); err != nil {
+	// if err := simple_sql.DeleteRow(ctx, conn); err != nil {
+	// 	panic(err)
+	// }
+
+	books, err := simple_sql.SelectRows(ctx, conn)
+	if err != nil {
 		panic(err)
 	}
+
+	for _, book := range books {
+		if book.ID == 4 {
+			book.Name = "History of war"
+			book.Author = "Andrey"
+			book.Pages = 50
+			book.Readed = true
+			book.BuyTime = time.Now()
+			now := time.Now()
+			book.ReadTime = &now
+
+			if err := simple_sql.UpdateBook(ctx, conn, book); err != nil {
+				panic(err)
+			}
+			break
+
+		}
+	}
+
+	fmt.Println(books)
 
 	fmt.Println("Succeed")
 
