@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
-	"library/feature2"
+	"fmt"
 	simpleconnection "library/feature_postgres/simple_connection"
+	"library/feature_postgres/simple_sql"
 	"log"
 	"net/http"
 	"sync"
@@ -212,8 +214,37 @@ func HandleDeleteBook(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	simpleconnection.CheckConnection()
-	feature2.Feature2()
+	ctx := context.Background()
+	conn, err := simpleconnection.CreateConnection(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	// simple_sql.ResetDB(ctx, conn)
+
+	if err := simple_sql.CreateTable(ctx, conn); err != nil {
+		panic(err)
+	}
+
+	// if err := simple_sql.InsertRow(
+	// 	ctx,
+	// 	conn,
+	// 	"LordOfTheRing",
+	// 	"Tolkien",
+	// 	2000); err != nil {
+	// 	panic(err)
+	// }
+
+	// if err := simple_sql.UpdateRow(ctx, conn); err != nil {
+	// 	panic(err)
+	// }
+
+	if err := simple_sql.DeleteRow(ctx, conn); err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Succeed")
+
 	if err := StartServer(); err != nil {
 		log.Fatal(err)
 	}
