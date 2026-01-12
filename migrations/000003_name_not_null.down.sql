@@ -1,0 +1,1 @@
+ALTER TABLE books ALTER COLUMN book_name DROP NOT NULL;
