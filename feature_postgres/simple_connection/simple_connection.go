@@ -10,7 +10,7 @@ import (
 //"postgres://YourUserName:YourPassword@YourHostName:5432/YourDatabaseName"
 
 func CreateConnection(ctx context.Context) (*pgx.Conn, error) {
-	connString := os.Getenv("conn_String")
+	connString := os.Getenv("CONN_STRING")
 
 	return pgx.Connect(ctx, connString)
 
