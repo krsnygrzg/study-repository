@@ -23,7 +23,7 @@ func main() {
 
 	log.Println("Server started on :9091")
 
-	if err := library.StartServer(); err != nil {
+	if err := library.StartServer(conn); err != nil {
 		log.Fatal(err)
 	}
 }
