@@ -5,12 +5,13 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5"
 )
 
-func StartServer() error {
+func StartServer(conn *pgx.Conn) error {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/book", HandleAddBook).Methods("POST")
+	router.HandleFunc("/book", HandleAddBook(conn)).Methods("POST")
 	router.HandleFunc("/book", HandleGetAllBooks).Methods("GET")
 	router.HandleFunc("/book", HandleGetReadedBooks).Methods("GET").Queries("readed", "true")
 	router.HandleFunc("/book", HandleGetUnreadedBooks).Methods("GET").Queries("readed", "false")

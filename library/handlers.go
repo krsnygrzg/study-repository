@@ -2,32 +2,54 @@ package library
 
 import (
 	"encoding/json"
+	"library/feature_postgres/simple_sql"
 	"net/http"
 	"sync"
 
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5"
 )
 
 var books = make([]Book, 0)
 
 var m sync.Mutex
 
-func HandleAddBook(w http.ResponseWriter, r *http.Request) {
-	var req AddBookRequest
+func HandleAddBook(conn *pgx.Conn) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req Book
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid json", http.StatusBadRequest)
-		return
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "invalid json", http.StatusBadRequest)
+			return
+		}
+
+		if req.Name == "" || req.Author == "" || req.Pages <= 0 {
+			http.Error(w, "invalid fields", http.StatusBadRequest)
+			return
+		}
+
+		var book simple_sql.BookModel
+
+		book = simple_sql.BookModel{
+			Name:     req.Name,
+			Author:   req.Author,
+			Pages:    req.Pages,
+			Readed:   req.Readed,
+			BuyTime:  req.BuyTime,
+			ReadTime: req.ReadTime,
+		}
+
+		createdBook, err := simple_sql.InsertRow(r.Context(), conn, book)
+		if err != nil {
+			http.Error(w, "db error", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+
+		json.NewEncoder(w).Encode(createdBook)
 	}
-
-	book := NewBook(req.Name, req.Author, req.Pages)
-
-	m.Lock()
-	books = append(books, book)
-	m.Unlock()
-
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(book)
 }
 
 func HandleGetBook(w http.ResponseWriter, r *http.Request) {
