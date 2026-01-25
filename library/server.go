@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func StartServer(conn *pgx.Conn) error {
+func StartServer(conn *pgx.Conn, port string) error {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/book", HandleAddBook(conn)).Methods("POST")
